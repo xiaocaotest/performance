@@ -1,0 +1,34 @@
+# oracle jdk 1.8 备用
+#FROM runcare/debian-jre1.8
+
+# openjdk 1.8
+FROM runcare/openjdk-jre1.8
+
+# 更新版本1
+MAINTAINER lucatest917@gmail.com
+
+ARG JMETER_VERSION="5.4.1"
+ENV JMETER_HOME /opt/apache-jmeter-$JMETER_VERSION
+ENV SSL_DISABLED true
+
+
+RUN mkdir -p /tmp/dependencies
+COPY apache-jmeter-$JMETER_VERSION.tgz /tmp/dependencies/
+RUN mkdir -p /opt \
+    && tar -xzf /tmp/dependencies/apache-jmeter-$JMETER_VERSION.tgz -C /opt  \
+    && rm -rf /tmp/dependencies
+
+# TODO: plugins (later)
+# && unzip -oq "/tmp/dependencies/JMeterPlugins-*.zip" -d $JMETER_HOME
+
+# Set global PATH such that "jmeter" command is found
+ENV PATH $PATH:$JMETER_HOME/bin
+
+VOLUME ["/data"]
+
+WORKDIR    $JMETER_HOME
+
+EXPOSE 1099 60001
+
+ENTRYPOINT jmeter-server -Dserver.rmi.localport=60001 -Dserver_port=1099 \
+            -Jserver.rmi.ssl.disable=$SSL_DISABLED
